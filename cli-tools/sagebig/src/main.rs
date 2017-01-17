@@ -20,11 +20,7 @@ fn main() {
             .arg(Arg::with_name("archive_path")
                 .value_name("archive_path")
                 .required(true)
-                .index(1))
-            .arg(Arg::with_name("verbose")
-                .short("v")
-                .long("verbose")
-                .help("Output detailed debug information while running")))
+                .index(1)))
         .subcommand(SubCommand::with_name("search")
             .about("Locate entries with names containing a string")
             .version("0.1.0")
@@ -36,11 +32,7 @@ fn main() {
             .arg(Arg::with_name("query")
                 .value_name("query")
                 .required(true)
-                .index(2))
-            .arg(Arg::with_name("verbose")
-                .short("v")
-                .long("verbose")
-                .help("Output detailed debug information while running")))
+                .index(2)))
         .subcommand(SubCommand::with_name("contains")
             .about("Query an archive to determine if it contains an entry with a name")
             .version("0.1.0")
@@ -52,11 +44,7 @@ fn main() {
             .arg(Arg::with_name("query")
                 .value_name("query")
                 .required(true)
-                .index(2))
-            .arg(Arg::with_name("verbose")
-                .short("v")
-                .long("verbose")
-                .help("Output detailed debug information while running")))
+                .index(2)))
         .get_matches();
 
     let res = match matches.subcommand() {
@@ -76,15 +64,15 @@ fn main() {
     std::process::exit(code);
 }
 
-fn cmd_list(args: &clap::ArgMatches) -> Result<(), ReadError> {
-    let path = args.value_of("archive_path").unwrap();
-
-    // TODO: Print out debug information
-    // let is_verbose = args.occurrences_of("verbose") > 0;
-
+fn load_archive(path: &str) -> Result<BigArchive, ReadError> {
     let f = try!(File::open(&path));
     let mut br = BufReader::new(f);
-    let archive = try!(BigArchive::new(&mut br));
+    Ok(try!(BigArchive::new(&mut br)))
+}
+
+fn cmd_list(args: &clap::ArgMatches) -> Result<(), ReadError> {
+    let path = args.value_of("archive_path").unwrap();
+    let archive = try!(load_archive(&path));
 
     for name in archive.get_all_entry_names().collect::<Vec<_>>() {
         let entry = archive.get_entry(name)
@@ -97,14 +85,8 @@ fn cmd_list(args: &clap::ArgMatches) -> Result<(), ReadError> {
 
 fn cmd_search(args: &clap::ArgMatches) -> Result<(), ReadError> {
     let path = args.value_of("archive_path").unwrap();
+    let archive = try!(load_archive(&path));
     let query = args.value_of("query").unwrap();
-
-    // TODO: Print out debug information
-    // let is_verbose = args.occurrences_of("verbose") > 0;
-
-    let f = try!(File::open(&path));
-    let mut br = BufReader::new(f);
-    let archive = try!(BigArchive::new(&mut br));
 
     for name in archive.get_all_entry_names().filter(|n| n.contains(query)).collect::<Vec<_>>() {
         let entry = archive.get_entry(name)
@@ -117,14 +99,8 @@ fn cmd_search(args: &clap::ArgMatches) -> Result<(), ReadError> {
 
 fn cmd_contains(args: &clap::ArgMatches) -> Result<(), ReadError> {
     let path = args.value_of("archive_path").unwrap();
+    let archive = try!(load_archive(&path));
     let query = args.value_of("query").unwrap();
-
-    // TODO: Print out debug information
-    // let is_verbose = args.occurrences_of("verbose") > 0;
-
-    let f = try!(File::open(&path));
-    let mut br = BufReader::new(f);
-    let archive = try!(BigArchive::new(&mut br));
 
     println!("{} contains {}: {}", path, query, archive.contains(query));
 

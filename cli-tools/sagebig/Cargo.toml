@@ -1,0 +1,8 @@
+[package]
+name = "sagebig"
+version = "0.1.0"
+authors = ["Taryn Hill <taryn@phrohdoh.com>"]
+
+[dependencies]
+libbig = { path = "../../" }
+clap = "2.19"

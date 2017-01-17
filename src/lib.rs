@@ -32,19 +32,24 @@ impl BigArchive {
             return Err(ReadError::UnknownFormat(bytes));
         }
 
-        let size = invert_endianness(data.read_u32::<LittleEndian>().expect("Failed to read size"));
-        let num_entries = invert_endianness(data.read_u32::<LittleEndian>()
-            .expect("Failed to read num_entries"));
-        let _first = data.read_u32::<LittleEndian>();
+        let size = try!(data.read_u32::<LittleEndian>());
+        let size = invert_endianness(size);
+
+        let num_entries = try!(data.read_u32::<LittleEndian>());
+        let num_entries = invert_endianness(num_entries);
+
+        // Offset to the first entry, I think.
+        let _ = data.read_u32::<LittleEndian>();
 
         let mut entries = HashMap::new();
 
         for i in 0..num_entries {
             let entry_num = i + 1;
-            let offset = invert_endianness(data.read_u32::<LittleEndian>()
-                .expect(&format!("Failed to read offset of entry {}", entry_num)));
-            let size = invert_endianness(data.read_u32::<LittleEndian>()
-                .expect(&format!("Failed to read size of entry {}", entry_num)));
+            let offset = try!(data.read_u32::<LittleEndian>());
+            let offset = invert_endianness(offset);
+
+            let size = try!(data.read_u32::<LittleEndian>());
+            let size = invert_endianness(size);
 
             let mut buf = Vec::new();
             data.read_until(b'\0', &mut buf)

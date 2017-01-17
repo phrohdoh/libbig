@@ -1,6 +1,7 @@
 extern crate byteorder;
 use byteorder::{LittleEndian, ReadBytesExt};
 
+use std::collections::HashMap;
 use std::io::{BufRead, Read};
 use std::fs::File;
 
@@ -8,37 +9,55 @@ use std::fs::File;
 pub struct BigArchive {
     pub format: Format,
     pub size: u32,
+
+    _entries: HashMap<String, BigEntry>,
 }
 
 impl BigArchive {
     pub fn new(mut data: &mut BufRead) -> Result<BigArchive, std::io::Error> {
         let format = read_format(&mut data).expect("Failed to read format");
-        let size = data.read_u32::<LittleEndian>().expect("Failed to read size");
-        let num_entries = data.read_u32::<LittleEndian>().expect("Failed to read num_entries");
+        let size = reverse(data.read_u32::<LittleEndian>().expect("Failed to read size"));
+        let num_entries = reverse(data.read_u32::<LittleEndian>()
+            .expect("Failed to read num_entries"));
         let _first = data.read_u32::<LittleEndian>();
 
+        let mut entries = HashMap::new();
+
         for i in 0..num_entries {
-            let offset = data.read_u32::<LittleEndian>()
-                .expect(&format!("Failed to read offset of entry {}", i + 1));
-            let size = data.read_u32::<LittleEndian>()
-                .expect(&format!("Failed to read size of entry {}", i + 1));
+            let entry_num = i + 1;
+            let offset = reverse(data.read_u32::<LittleEndian>()
+                .expect(&format!("Failed to read offset of entry {}", entry_num)));
+            let size = reverse(data.read_u32::<LittleEndian>()
+                .expect(&format!("Failed to read size of entry {}", entry_num)));
 
             let mut buf = Vec::new();
             data.read_until(b'\0', &mut buf)
-                .expect(&format!("Failed to read name for entry {}", i + 1));
+                .expect(&format!("Failed to read name for entry {}", entry_num));
+
+            let name = String::from_utf8_lossy(&buf[..buf.len() - 1]);
+
+            let entry = BigEntry {
+                offset: offset,
+                size: size,
+                name: name.to_string(),
+            };
+
+            entries.insert(entry.name.clone(), entry);
         }
 
         Ok(BigArchive {
             format: format,
             size: size,
+            _entries: entries,
         })
     }
 }
 
-pub struct BigEntry<'archive> {
+#[derive(Debug)]
+pub struct BigEntry {
     pub offset: u32,
     pub size: u32,
-    pub name: &'archive str,
+    pub name: String,
 }
 
 #[derive(Debug, PartialEq)]
@@ -62,6 +81,10 @@ impl<'a> From<&'a mut BufRead> for Format {
 
 fn read_format(data: &mut BufRead) -> Result<Format, std::io::Error> {
     Ok(Format::from(data))
+}
+
+fn reverse(v: u32) -> u32 {
+    (v << 24) | (v << 8 & 0xff0000) | (v >> 8 & 0xff00) | (v >> 24)
 }
 
 #[cfg(test)]

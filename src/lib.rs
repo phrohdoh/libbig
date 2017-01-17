@@ -120,12 +120,19 @@ mod tests {
     const TEST_BYTES: &'static [u8] = include_bytes!("../test.big");
 
     use std::io::BufReader;
-    use super::{read_format, Format};
+    use super::{read_format, Format, BigArchive};
 
     #[test]
     fn is_big4() {
         let mut reader = BufReader::new(TEST_BYTES);
         assert_eq!(read_format(&mut reader).expect("Failed to load file"),
                    Format::Big4);
+    }
+
+    #[test]
+    fn has_two_entries() {
+        let mut reader = BufReader::new(TEST_BYTES);
+        let archive = BigArchive::new(&mut reader).unwrap();
+        assert_eq!(archive.get_all_entry_names().len(), 2);
     }
 }

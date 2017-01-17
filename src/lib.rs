@@ -58,6 +58,10 @@ impl BigArchive {
     pub fn get_entry_mut(&mut self, entry_name: &str) -> Option<&mut BigEntry> {
         self._entries.get_mut(entry_name)
     }
+
+    pub fn get_all_entry_names(&self) -> std::collections::hash_map::Keys<String, BigEntry> {
+        self._entries.keys()
+    }
 }
 
 #[derive(Debug)]

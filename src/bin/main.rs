@@ -23,15 +23,10 @@ fn run() -> Result<i32, std::io::Error> {
             let f = try!(File::open(&path));
             let mut br = BufReader::new(f);
 
-            if let Ok(big) = BigArchive::new(&mut br) {
-                if let Some(filename) = env::args().nth(2) {
-                    if let Some(entry) = big.get_entry(&filename) {
-                        println!("{:#?}", entry);
-                    } else {
-                        println!("{} does not exist in {}", filename, path);
-                    }
-                } else {
-                    println!("{:#?}", big);
+            if let Ok(archive) = BigArchive::new(&mut br) {
+                for name in archive.get_all_entry_names().collect::<Vec<_>>() {
+                    let entry = archive.get_entry(name);
+                    println!("{:#?}", entry.unwrap());
                 }
 
                 Ok(0)
@@ -40,11 +35,10 @@ fn run() -> Result<i32, std::io::Error> {
             }
         }
         None => {
-            println!("Please provide a path to a .big archive");
+            println!("Please provide a path to a `.big` archive!");
             println!("");
             println!("Example:");
             println!("  cargo run -- test.big");
-            println!("  cargo run -- test.big data/test.ini");
             Ok(1)
         }
     }

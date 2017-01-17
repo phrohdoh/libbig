@@ -65,7 +65,7 @@ fn cmd_list(args: &clap::ArgMatches) -> Result<(), ReadError> {
     let path = args.value_of("archive_path").unwrap();
     let archive = try!(BigArchive::new_from_path(&path));
 
-    for name in archive.get_all_entry_names().collect::<Vec<_>>() {
+    for name in archive.get_all_entry_names() {
         let entry = archive.get_entry(name)
             .expect(&format!("Failed to read known entry {} from {}", name, path));
         println!("{:#?}", entry);
@@ -79,7 +79,7 @@ fn cmd_search(args: &clap::ArgMatches) -> Result<(), ReadError> {
     let archive = try!(BigArchive::new_from_path(&path));
     let query = args.value_of("query").unwrap();
 
-    for name in archive.get_all_entry_names().filter(|n| n.contains(query)).collect::<Vec<_>>() {
+    for name in archive.get_all_entry_names().filter(|n| n.contains(query)) {
         let entry = archive.get_entry(name)
             .expect(&format!("Failed to read known entry {} from {}", name, path));
         println!("{:#?}", entry);

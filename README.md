@@ -2,12 +2,6 @@
 
 A library to read BIG archives (from EA's SAGE engine [BFME, Generals, etc])
 
-### Warning
-
-This is _not_ idiomatic Rust (there is _no_ error handling) and should be
-
-refactored before being consumed.
-
 ### License
 
 MIT
@@ -25,7 +19,8 @@ $ cargo test
 ### Running
 
 ```
-$ cargo run -- test.big
+$ cd cli-tools/sagebig
+$ cargo run -- list ../../test.big
 ```
 
 This should result in something similar to:

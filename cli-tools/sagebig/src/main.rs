@@ -67,7 +67,7 @@ fn main() {
 fn load_archive(path: &str) -> Result<BigArchive, ReadError> {
     let f = try!(File::open(&path));
     let mut br = BufReader::new(f);
-    Ok(try!(BigArchive::new(&mut br)))
+    Ok(try!(BigArchive::new_from_bufreader(&mut br)))
 }
 
 fn cmd_list(args: &clap::ArgMatches) -> Result<(), ReadError> {

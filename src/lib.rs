@@ -2,7 +2,8 @@ extern crate byteorder;
 use byteorder::{LittleEndian, ReadBytesExt};
 
 use std::collections::HashMap;
-use std::io::{self, BufRead};
+use std::io::{self, BufRead, BufReader};
+use std::fs::File;
 
 #[derive(Debug)]
 pub struct BigArchive {
@@ -25,7 +26,7 @@ impl From<io::Error> for ReadError {
 }
 
 impl BigArchive {
-    pub fn new(mut data: &mut BufRead) -> Result<BigArchive, ReadError> {
+    pub fn new_from_bufreader(mut data: &mut BufRead) -> Result<BigArchive, ReadError> {
         let format = read_format(&mut data).expect("Failed to read format");
 
         if let Format::Unknown(bytes) = format {
@@ -71,6 +72,12 @@ impl BigArchive {
             size: size,
             _entries: entries,
         })
+    }
+
+    pub fn new_from_path(path: &str) -> Result<Self, ReadError> {
+        let f = try!(File::open(&path));
+        let mut br = BufReader::new(f);
+        Ok(try!(BigArchive::new_from_bufreader(&mut br)))
     }
 
     pub fn contains(&self, entry_name: &str) -> bool {
@@ -129,33 +136,33 @@ mod tests {
     const TEST_BYTES: &'static [u8] = include_bytes!("../test.big");
 
     use std::io::BufReader;
-    use super::{read_format, Format, BigArchive};
+    use super::{Format, BigArchive};
 
     #[test]
     fn is_big4() {
         let mut reader = BufReader::new(TEST_BYTES);
-        assert_eq!(read_format(&mut reader).expect("Failed to load file"),
-                   Format::Big4);
+        let archive = BigArchive::new_from_bufreader(&mut reader).unwrap();
+        assert_eq!(archive.format, Format::Big4);
     }
 
     #[test]
     fn has_two_entries() {
         let mut reader = BufReader::new(TEST_BYTES);
-        let archive = BigArchive::new(&mut reader).unwrap();
+        let archive = BigArchive::new_from_bufreader(&mut reader).unwrap();
         assert_eq!(archive.get_all_entry_names().len(), 2);
     }
 
     #[test]
     fn contains_art_slash_image_dot_txt() {
         let mut reader = BufReader::new(TEST_BYTES);
-        let archive = BigArchive::new(&mut reader).unwrap();
+        let archive = BigArchive::new_from_bufreader(&mut reader).unwrap();
         assert!(archive.contains("art/image.txt"));
     }
 
     #[test]
     fn contains_data_slash_test_dot_ini() {
         let mut reader = BufReader::new(TEST_BYTES);
-        let archive = BigArchive::new(&mut reader).unwrap();
+        let archive = BigArchive::new_from_bufreader(&mut reader).unwrap();
         assert!(archive.contains("data/test.ini"));
     }
 }

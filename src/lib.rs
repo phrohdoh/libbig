@@ -2,8 +2,7 @@ extern crate byteorder;
 use byteorder::{LittleEndian, ReadBytesExt};
 
 use std::collections::HashMap;
-use std::io::{BufRead, Read};
-use std::fs::File;
+use std::io::BufRead;
 
 #[derive(Debug)]
 pub struct BigArchive {

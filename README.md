@@ -21,9 +21,13 @@ $ cargo test
 ```
 $ cd cli-tools/sagebig
 $ cargo run -- list ../../test.big
+
+# or
+
+$ cargo run -- search ../../test.big art
 ```
 
-This should result in something similar to:
+`list` should result in something similar to:
 
 ```
 BigEntry {
@@ -31,6 +35,16 @@ BigEntry {
     size: 26,
     name: "data/test.ini"
 }
+BigEntry {
+    offset: 69,
+    size: 7,
+    name: "art/image.txt"
+}
+```
+
+`search` will yield:
+
+```
 BigEntry {
     offset: 69,
     size: 7,

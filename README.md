@@ -41,7 +41,7 @@ SUBCOMMANDS:
     contains    Query an archive to determine if it contains an entry with a name
 ```
 
-To run `sagebig` from the `./cli-tools/sagebig` directory:
+`cd cli-tools/sagebig` then:
 
 ```
 $ cargo run -- list ../../test.big

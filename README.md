@@ -44,13 +44,7 @@ To run `sagebig` from the `./cli-tools/sagebig` directory:
 
 ```
 $ cargo run -- list ../../test.big
-# or
-$ cargo run -- search ../../test.big art
-```
 
-`list` should result in something similar to:
-
-```
 BigEntry {
     offset: 76,
     size: 26,
@@ -63,9 +57,9 @@ BigEntry {
 }
 ```
 
-`search` will yield:
-
 ```
+$ cargo run -- search ../../test.big art
+
 BigEntry {
     offset: 69,
     size: 7,

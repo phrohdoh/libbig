@@ -102,11 +102,13 @@ fn reverse(v: u32) -> u32 {
 mod tests {
     const TEST_BYTES: &'static [u8] = include_bytes!("../test.big");
 
+    use std::io::BufReader;
     use super::{read_format, Format};
 
     #[test]
     fn is_big4() {
-        assert_eq!(read_format(TEST_BYTES).expect("Failed to load file"),
+        let mut reader = BufReader::new(TEST_BYTES);
+        assert_eq!(read_format(&mut reader).expect("Failed to load file"),
                    Format::Big4);
     }
 }

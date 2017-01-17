@@ -2,7 +2,7 @@ extern crate byteorder;
 use byteorder::{LittleEndian, ReadBytesExt};
 
 use std::collections::HashMap;
-use std::io::BufRead;
+use std::io::{self, BufRead};
 
 #[derive(Debug)]
 pub struct BigArchive {
@@ -12,9 +12,26 @@ pub struct BigArchive {
     _entries: HashMap<String, BigEntry>,
 }
 
+#[derive(Debug)]
+pub enum ReadError {
+    StdIoError(io::Error),
+    UnknownFormat(Vec<u8>),
+}
+
+impl From<io::Error> for ReadError {
+    fn from(e: io::Error) -> Self {
+        ReadError::StdIoError(e)
+    }
+}
+
 impl BigArchive {
-    pub fn new(mut data: &mut BufRead) -> Result<BigArchive, std::io::Error> {
+    pub fn new(mut data: &mut BufRead) -> Result<BigArchive, ReadError> {
         let format = read_format(&mut data).expect("Failed to read format");
+
+        if let Format::Unknown(bytes) = format {
+            return Err(ReadError::UnknownFormat(bytes));
+        }
+
         let size = invert_endianness(data.read_u32::<LittleEndian>().expect("Failed to read size"));
         let num_entries = invert_endianness(data.read_u32::<LittleEndian>()
             .expect("Failed to read num_entries"));
@@ -90,7 +107,7 @@ impl<'a> From<&'a mut BufRead> for Format {
     }
 }
 
-fn read_format(data: &mut BufRead) -> Result<Format, std::io::Error> {
+fn read_format(data: &mut BufRead) -> Result<Format, io::Error> {
     Ok(Format::from(data))
 }
 

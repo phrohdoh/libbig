@@ -15,8 +15,8 @@ pub struct BigArchive {
 impl BigArchive {
     pub fn new(mut data: &mut BufRead) -> Result<BigArchive, std::io::Error> {
         let format = read_format(&mut data).expect("Failed to read format");
-        let size = reverse(data.read_u32::<LittleEndian>().expect("Failed to read size"));
-        let num_entries = reverse(data.read_u32::<LittleEndian>()
+        let size = invert_endianness(data.read_u32::<LittleEndian>().expect("Failed to read size"));
+        let num_entries = invert_endianness(data.read_u32::<LittleEndian>()
             .expect("Failed to read num_entries"));
         let _first = data.read_u32::<LittleEndian>();
 
@@ -24,9 +24,9 @@ impl BigArchive {
 
         for i in 0..num_entries {
             let entry_num = i + 1;
-            let offset = reverse(data.read_u32::<LittleEndian>()
+            let offset = invert_endianness(data.read_u32::<LittleEndian>()
                 .expect(&format!("Failed to read offset of entry {}", entry_num)));
-            let size = reverse(data.read_u32::<LittleEndian>()
+            let size = invert_endianness(data.read_u32::<LittleEndian>()
                 .expect(&format!("Failed to read size of entry {}", entry_num)));
 
             let mut buf = Vec::new();
@@ -94,7 +94,7 @@ fn read_format(data: &mut BufRead) -> Result<Format, std::io::Error> {
     Ok(Format::from(data))
 }
 
-fn reverse(v: u32) -> u32 {
+fn invert_endianness(v: u32) -> u32 {
     (v << 24) | (v << 8 & 0xff0000) | (v >> 8 & 0xff00) | (v >> 24)
 }
 

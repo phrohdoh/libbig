@@ -1,6 +1,3 @@
-use std::fs::File;
-use std::io::BufReader;
-
 extern crate libbig;
 use libbig::{BigArchive, ReadError};
 
@@ -64,15 +61,9 @@ fn main() {
     std::process::exit(code);
 }
 
-fn load_archive(path: &str) -> Result<BigArchive, ReadError> {
-    let f = try!(File::open(&path));
-    let mut br = BufReader::new(f);
-    Ok(try!(BigArchive::new_from_bufreader(&mut br)))
-}
-
 fn cmd_list(args: &clap::ArgMatches) -> Result<(), ReadError> {
     let path = args.value_of("archive_path").unwrap();
-    let archive = try!(load_archive(&path));
+    let archive = try!(BigArchive::new_from_path(&path));
 
     for name in archive.get_all_entry_names().collect::<Vec<_>>() {
         let entry = archive.get_entry(name)
@@ -85,7 +76,7 @@ fn cmd_list(args: &clap::ArgMatches) -> Result<(), ReadError> {
 
 fn cmd_search(args: &clap::ArgMatches) -> Result<(), ReadError> {
     let path = args.value_of("archive_path").unwrap();
-    let archive = try!(load_archive(&path));
+    let archive = try!(BigArchive::new_from_path(&path));
     let query = args.value_of("query").unwrap();
 
     for name in archive.get_all_entry_names().filter(|n| n.contains(query)).collect::<Vec<_>>() {
@@ -99,7 +90,7 @@ fn cmd_search(args: &clap::ArgMatches) -> Result<(), ReadError> {
 
 fn cmd_contains(args: &clap::ArgMatches) -> Result<(), ReadError> {
     let path = args.value_of("archive_path").unwrap();
-    let archive = try!(load_archive(&path));
+    let archive = try!(BigArchive::new_from_path(&path));
     let query = args.value_of("query").unwrap();
 
     println!("{} contains {}: {}", path, query, archive.contains(query));

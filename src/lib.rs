@@ -117,7 +117,7 @@ impl<'a> From<&'a mut BufRead> for Format {
         let _ = data.read_exact(&mut buf);
         match &buf {
             b"BIG4" => Format::Big4,
-            b"BIGf" => Format::BigF,
+            b"BIGF" => Format::BigF,
             _ => Format::Unknown(Vec::from(&buf[..])),
         }
     }

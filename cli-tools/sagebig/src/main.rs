@@ -17,10 +17,26 @@ fn main() {
             .about("List all entries in an archive")
             .version("0.1.0")
             .author("Taryn Hill <taryn@phrohdoh.com>")
-            .arg(Arg::with_name("path")
-                .value_name("path")
+            .arg(Arg::with_name("archive_path")
+                .value_name("archive_path")
                 .required(true)
                 .index(1))
+            .arg(Arg::with_name("verbose")
+                .short("v")
+                .long("verbose")
+                .help("Output detailed debug information while running")))
+        .subcommand(SubCommand::with_name("search")
+            .about("Locate entries with names containing a string")
+            .version("0.1.0")
+            .author("Taryn Hill <taryn@phrohdoh.com>")
+            .arg(Arg::with_name("archive_path")
+                .value_name("archive_path")
+                .required(true)
+                .index(1))
+            .arg(Arg::with_name("query")
+                .value_name("query")
+                .required(true)
+                .index(2))
             .arg(Arg::with_name("verbose")
                 .short("v")
                 .long("verbose")
@@ -29,6 +45,7 @@ fn main() {
 
     let res = match matches.subcommand() {
         ("list", Some(args)) => cmd_list(args),
+        ("search", Some(args)) => cmd_search(args),
         _ => unreachable!(),
     };
 
@@ -43,7 +60,7 @@ fn main() {
 }
 
 fn cmd_list(args: &clap::ArgMatches) -> Result<(), ReadError> {
-    let path = args.value_of("path").unwrap();
+    let path = args.value_of("archive_path").unwrap();
 
     // TODO: Print out debug information
     // let is_verbose = args.occurrences_of("verbose") > 0;
@@ -53,6 +70,26 @@ fn cmd_list(args: &clap::ArgMatches) -> Result<(), ReadError> {
     let archive = try!(BigArchive::new(&mut br));
 
     for name in archive.get_all_entry_names().collect::<Vec<_>>() {
+        let entry = archive.get_entry(name)
+            .expect(&format!("Failed to read known entry {} from {}", name, path));
+        println!("{:#?}", entry);
+    }
+
+    Ok(())
+}
+
+fn cmd_search(args: &clap::ArgMatches) -> Result<(), ReadError> {
+    let path = args.value_of("archive_path").unwrap();
+    let query = args.value_of("query").unwrap();
+
+    // TODO: Print out debug information
+    // let is_verbose = args.occurrences_of("verbose") > 0;
+
+    let f = try!(File::open(&path));
+    let mut br = BufReader::new(f);
+    let archive = try!(BigArchive::new(&mut br));
+
+    for name in archive.get_all_entry_names().filter(|n| n.contains(query)).collect::<Vec<_>>() {
         let entry = archive.get_entry(name)
             .expect(&format!("Failed to read known entry {} from {}", name, path));
         println!("{:#?}", entry);

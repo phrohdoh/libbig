@@ -54,6 +54,10 @@ impl BigArchive {
     pub fn get_entry(&self, entry_name: &str) -> Option<&BigEntry> {
         self._entries.get(entry_name)
     }
+
+    pub fn get_entry_mut(&mut self, entry_name: &str) -> Option<&mut BigEntry> {
+        self._entries.get_mut(entry_name)
+    }
 }
 
 #[derive(Debug)]

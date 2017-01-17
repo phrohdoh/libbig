@@ -44,7 +44,6 @@ impl BigArchive {
         let mut entries = HashMap::new();
 
         for i in 0..num_entries {
-            let entry_num = i + 1;
             let offset = try!(data.read_u32::<LittleEndian>());
             let offset = invert_endianness(offset);
 
@@ -53,8 +52,9 @@ impl BigArchive {
 
             let mut buf = Vec::new();
             data.read_until(b'\0', &mut buf)
-                .expect(&format!("Failed to read name for entry {}", entry_num));
+                .expect(&format!("Failed to read name for entry {}", i + 1));
 
+            // Remove the trailing \0
             let name = String::from_utf8_lossy(&buf[..buf.len() - 1]);
 
             let entry = BigEntry {

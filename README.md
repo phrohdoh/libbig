@@ -31,20 +31,14 @@ $ cargo run -- test.big
 This should result in something similar to:
 
 ```
-BigArchive {
-    format: Big4,
-    size: 1711276032,
-    _entries: {
-        "data/test.ini": BigEntry {
-            offset: 76,
-            size: 26,
-            name: "data/test.ini"
-        },
-        "art/image.txt": BigEntry {
-            offset: 69,
-            size: 7,
-            name: "art/image.txt"
-        }
-    }
+BigEntry {
+    offset: 76,
+    size: 26,
+    name: "data/test.ini"
+}
+BigEntry {
+    offset: 69,
+    size: 7,
+    name: "art/image.txt"
 }
 ```

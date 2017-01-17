@@ -144,4 +144,18 @@ mod tests {
         let archive = BigArchive::new(&mut reader).unwrap();
         assert_eq!(archive.get_all_entry_names().len(), 2);
     }
+
+    #[test]
+    fn contains_art_slash_image_dot_txt() {
+        let mut reader = BufReader::new(TEST_BYTES);
+        let archive = BigArchive::new(&mut reader).unwrap();
+        assert!(archive.contains("art/image.txt"));
+    }
+
+    #[test]
+    fn contains_data_slash_test_dot_ini() {
+        let mut reader = BufReader::new(TEST_BYTES);
+        let archive = BigArchive::new(&mut reader).unwrap();
+        assert!(archive.contains("data/test.ini"));
+    }
 }

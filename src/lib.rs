@@ -50,6 +50,10 @@ impl BigArchive {
             _entries: entries,
         })
     }
+
+    pub fn get_entry(&self, entry_name: &str) -> Option<&BigEntry> {
+        self._entries.get(entry_name)
+    }
 }
 
 #[derive(Debug)]

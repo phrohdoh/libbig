@@ -73,6 +73,10 @@ impl BigArchive {
         })
     }
 
+    pub fn contains(&self, entry_name: &str) -> bool {
+        self.get_entry(entry_name).is_some()
+    }
+
     pub fn get_entry(&self, entry_name: &str) -> Option<&BigEntry> {
         self._entries.get(entry_name)
     }

@@ -155,7 +155,7 @@ fn invert_endianness(v: u32) -> u32 {
 }
 
 #[cfg(test)]
-mod tests {
+mod tests_bytes {
     const TEST_BYTES: &'static [u8] = include_bytes!("../test.big");
 
     use std::io::{BufReader, Cursor};
@@ -190,6 +190,38 @@ mod tests {
         let c = Cursor::new(TEST_BYTES);
         let br = BufReader::new(c);
         let archive = BigArchive::new(br).unwrap();
+        assert!(archive.contains("data/test.ini"));
+    }
+}
+
+#[cfg(test)]
+mod tests_file {
+    use super::{Format, BigArchive};
+
+    // Note: Filepaths in tests are relative to the project root.
+    const ARCHIVE_PATH: &'static str = "test.big";
+
+    #[test]
+    fn is_big4() {
+        let archive = BigArchive::new_from_path(&ARCHIVE_PATH).unwrap();
+        assert_eq!(archive.format, Format::Big4);
+    }
+
+    #[test]
+    fn has_two_entries() {
+        let archive = BigArchive::new_from_path(&ARCHIVE_PATH).unwrap();
+        assert_eq!(archive.get_all_entry_names().len(), 2);
+    }
+
+    #[test]
+    fn contains_art_slash_image_dot_txt() {
+        let archive = BigArchive::new_from_path(&ARCHIVE_PATH).unwrap();
+        assert!(archive.contains("art/image.txt"));
+    }
+
+    #[test]
+    fn contains_data_slash_test_dot_ini() {
+        let archive = BigArchive::new_from_path(&ARCHIVE_PATH).unwrap();
         assert!(archive.contains("data/test.ini"));
     }
 }

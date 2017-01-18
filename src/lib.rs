@@ -198,8 +198,7 @@ mod tests_bytes {
 mod tests_file {
     use super::{Format, BigArchive};
 
-    // Note: Filepaths in tests are relative to the project root.
-    const ARCHIVE_PATH: &'static str = "test.big";
+    const ARCHIVE_PATH: &'static str = concat!(env!("CARGO_MANIFEST_DIR"), "/test.big");
 
     #[test]
     fn is_big4() {

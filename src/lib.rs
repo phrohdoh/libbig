@@ -2,14 +2,14 @@ extern crate byteorder;
 use byteorder::{LittleEndian, ReadBytesExt};
 
 use std::collections::HashMap;
-use std::io::{self, BufRead, BufReader};
+use std::io::{self, Read, Seek, SeekFrom, BufRead, BufReader};
 use std::fs::File;
 
-#[derive(Debug)]
-pub struct BigArchive {
+pub struct BigArchive<T: Read + Seek> {
     pub format: Format,
     pub size: u32,
 
+    _buf_reader: BufReader<T>,
     _entries: HashMap<String, BigEntry>,
 }
 
@@ -25,8 +25,16 @@ impl From<io::Error> for ReadError {
     }
 }
 
-impl BigArchive {
-    pub fn new_from_bufreader(mut data: &mut BufRead) -> Result<BigArchive, ReadError> {
+impl BigArchive<File> {
+    pub fn new_from_path(path: &str) -> Result<Self, ReadError> {
+        let f = try!(File::open(&path));
+        let br = BufReader::new(f);
+        Ok(try!(BigArchive::new(br)))
+    }
+}
+
+impl<T: Read + Seek> BigArchive<T> {
+    pub fn new(mut data: BufReader<T>) -> Result<Self, ReadError> {
         let format = read_format(&mut data).expect("Failed to read format");
 
         if let Format::Unknown(bytes) = format {
@@ -70,14 +78,29 @@ impl BigArchive {
         Ok(BigArchive {
             format: format,
             size: size,
+            _buf_reader: data,
             _entries: entries,
         })
     }
 
-    pub fn new_from_path(path: &str) -> Result<Self, ReadError> {
-        let f = try!(File::open(&path));
-        let mut br = BufReader::new(f);
-        Ok(try!(BigArchive::new_from_bufreader(&mut br)))
+    /// TODO: Don't returned owned data, instead give the caller back a slice
+    pub fn read_entry(&mut self, entry_name: &str) -> Option<Vec<u8>> {
+        if let Some(entry) = self._entries.get_mut(entry_name) {
+            let mut br = &mut self._buf_reader;
+
+            if br.seek(SeekFrom::Start((*entry).offset as u64)).is_err() {
+                return None;
+            }
+
+            let mut buf = vec![0; entry.size as usize];
+            if br.read_exact(&mut buf).is_err() {
+                return None;
+            }
+
+            Some(buf)
+        } else {
+            None
+        }
     }
 
     pub fn contains(&self, entry_name: &str) -> bool {
@@ -135,34 +158,38 @@ fn invert_endianness(v: u32) -> u32 {
 mod tests {
     const TEST_BYTES: &'static [u8] = include_bytes!("../test.big");
 
-    use std::io::BufReader;
+    use std::io::{BufReader, Cursor};
     use super::{Format, BigArchive};
 
     #[test]
     fn is_big4() {
-        let mut reader = BufReader::new(TEST_BYTES);
-        let archive = BigArchive::new_from_bufreader(&mut reader).unwrap();
+        let c = Cursor::new(TEST_BYTES);
+        let br = BufReader::new(c);
+        let archive = BigArchive::new(br).unwrap();
         assert_eq!(archive.format, Format::Big4);
     }
 
     #[test]
     fn has_two_entries() {
-        let mut reader = BufReader::new(TEST_BYTES);
-        let archive = BigArchive::new_from_bufreader(&mut reader).unwrap();
+        let c = Cursor::new(TEST_BYTES);
+        let br = BufReader::new(c);
+        let archive = BigArchive::new(br).unwrap();
         assert_eq!(archive.get_all_entry_names().len(), 2);
     }
 
     #[test]
     fn contains_art_slash_image_dot_txt() {
-        let mut reader = BufReader::new(TEST_BYTES);
-        let archive = BigArchive::new_from_bufreader(&mut reader).unwrap();
+        let c = Cursor::new(TEST_BYTES);
+        let br = BufReader::new(c);
+        let archive = BigArchive::new(br).unwrap();
         assert!(archive.contains("art/image.txt"));
     }
 
     #[test]
     fn contains_data_slash_test_dot_ini() {
-        let mut reader = BufReader::new(TEST_BYTES);
-        let archive = BigArchive::new_from_bufreader(&mut reader).unwrap();
+        let c = Cursor::new(TEST_BYTES);
+        let br = BufReader::new(c);
+        let archive = BigArchive::new(br).unwrap();
         assert!(archive.contains("data/test.ini"));
     }
 }

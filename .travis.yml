@@ -10,7 +10,7 @@ os:
 
 script:
   - cargo build --verbose
-  - cargo test --verbose
+  - make test
 
 notifications:
   email: false

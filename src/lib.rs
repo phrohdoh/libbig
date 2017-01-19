@@ -1,6 +1,9 @@
 extern crate byteorder;
 use byteorder::{LittleEndian, ReadBytesExt};
 
+pub mod errors;
+use errors::ReadError;
+
 use std::collections::HashMap;
 use std::io::{self, Read, Seek, SeekFrom, BufRead, BufReader};
 use std::fs::File;
@@ -11,18 +14,6 @@ pub struct BigArchive<T: Read + Seek> {
 
     _buf_reader: BufReader<T>,
     _entries: HashMap<String, BigEntry>,
-}
-
-#[derive(Debug)]
-pub enum ReadError {
-    StdIoError(io::Error),
-    UnknownFormat(Vec<u8>),
-}
-
-impl From<io::Error> for ReadError {
-    fn from(e: io::Error) -> Self {
-        ReadError::StdIoError(e)
-    }
 }
 
 impl BigArchive<File> {

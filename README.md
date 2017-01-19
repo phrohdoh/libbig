@@ -13,7 +13,7 @@ https://github.com/feliwir/libbig
 ### Testing
 
 ```
-$ cargo test
+$ make test # from the root
 ```
 
 ### Running

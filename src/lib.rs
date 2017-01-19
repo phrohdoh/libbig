@@ -83,7 +83,7 @@ impl<T: Read + Seek> BigArchive<T> {
         })
     }
 
-    /// TODO: Don't returned owned data, instead give the caller back a slice
+    /// TODO: Don't return owned data, instead give the caller back a slice
     pub fn read_entry(&mut self, entry_name: &str) -> Option<Vec<u8>> {
         if let Some(entry) = self._entries.get_mut(entry_name) {
             let mut br = &mut self._buf_reader;
@@ -104,7 +104,7 @@ impl<T: Read + Seek> BigArchive<T> {
     }
 
     pub fn contains(&self, entry_name: &str) -> bool {
-        self.get_entry(entry_name).is_some()
+        self._entries.contains_key(entry_name)
     }
 
     pub fn get_entry(&self, entry_name: &str) -> Option<&BigEntry> {

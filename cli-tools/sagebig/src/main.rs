@@ -42,7 +42,7 @@ fn main() {
                 .required(true)
                 .index(1)))
         .subcommand(SubCommand::with_name("search")
-            .about("Locate entries with names containing a string")
+            .about("Locate entries with names containing a given string")
             .version("0.1.0")
             .author("Taryn Hill <taryn@phrohdoh.com>")
             .arg(Arg::with_name("archive_path")

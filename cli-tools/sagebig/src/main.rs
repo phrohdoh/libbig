@@ -1,8 +1,31 @@
-extern crate libbig;
-use libbig::{BigArchive, ReadError};
+use std::fs::{self, DirBuilder, File};
+use std::io::Write;
+use std::path::Path;
 
 extern crate clap;
 use clap::{Arg, App, AppSettings, SubCommand};
+
+extern crate libbig;
+use libbig::BigArchive;
+use libbig::errors::{ExtractError, ReadError};
+
+#[derive(Debug)]
+enum CliError {
+    Read(ReadError),
+    Extract(ExtractError),
+}
+
+impl From<ReadError> for CliError {
+    fn from(e: ReadError) -> Self {
+        CliError::Read(e)
+    }
+}
+
+impl From<ExtractError> for CliError {
+    fn from(e: ExtractError) -> Self {
+        CliError::Extract(e)
+    }
+}
 
 fn main() {
     let matches = App::new("sagebig")
@@ -42,17 +65,33 @@ fn main() {
                 .value_name("query")
                 .required(true)
                 .index(2)))
+        .subcommand(SubCommand::with_name("extract")
+            .about("Create a directory structure and extract files from an archive's hierarchy")
+            .version("0.1.0")
+            .author("Taryn Hill <taryn@phrohdoh.com>")
+            .arg(Arg::with_name("archive_path")
+                .value_name("archive_path")
+                .required(true)
+                .index(1))
+            .arg(Arg::with_name("output_dir")
+                .value_name("output_dir")
+                .required(true)
+                .index(2))
+            .arg(Arg::with_name("verbose")
+                .short("v")
+                .long("verbose")))
         .get_matches();
 
-    let res = match matches.subcommand() {
-        ("list", Some(args)) => cmd_list(args),
-        ("search", Some(args)) => cmd_search(args),
-        ("contains", Some(args)) => cmd_contains(args),
+    let res: Result<(), CliError> = match matches.subcommand() {
+        ("list", Some(args)) => cmd_list(args).map_err(CliError::Read),
+        ("search", Some(args)) => cmd_search(args).map_err(CliError::Read),
+        ("contains", Some(args)) => cmd_contains(args).map_err(CliError::Read),
+        ("extract", Some(args)) => cmd_extract(args),
         _ => unreachable!(),
     };
 
     let code = if let Some(e) = res.err() {
-        println!("Error: {:?}", e);
+        println!("CliError: {:?}", e);
         255
     } else {
         0
@@ -94,6 +133,49 @@ fn cmd_contains(args: &clap::ArgMatches) -> Result<(), ReadError> {
     let query = args.value_of("query").unwrap();
 
     println!("{} contains {}: {}", path, query, archive.contains(query));
+
+    Ok(())
+}
+
+fn cmd_extract(args: &clap::ArgMatches) -> Result<(), CliError> {
+    let path = args.value_of("archive_path").unwrap();
+    let output_dir = Path::new(args.value_of("output_dir").unwrap());
+    let is_verbose = args.is_present("verbose");
+    let archive = try!(BigArchive::new_from_path(&path));
+
+    if !output_dir.exists() {
+        try!(fs::create_dir(&output_dir)
+            .map_err(|e| CliError::Extract(ExtractError::StdIoError(e))));
+    }
+
+    let output_dir = try!(output_dir.canonicalize().map_err(ExtractError::StdIoError));
+
+    let names = archive.get_all_entry_names().map(|k| k.to_owned()).collect::<Vec<_>>();
+    for name in names {
+        let entry = archive.get_entry(&name)
+            .expect(&format!("Failed to read known entry {} from {}", name, path));
+
+        let file_path = output_dir.join(Path::new(&entry.name));
+        let file_path_dir = try!(file_path.parent()
+            .ok_or(CliError::Extract(ExtractError::InvalidPath(file_path.clone()))));
+
+        if !file_path_dir.exists() {
+            try!(DirBuilder::new()
+                .recursive(true)
+                .create(&file_path_dir)
+                .map_err(ExtractError::StdIoError));
+        }
+
+        if let Some(entry_data) = archive.read_entry(&name) {
+            let mut file = try!(File::create(file_path.clone()).map_err(ExtractError::StdIoError));
+            try!(file.write_all(entry_data.as_slice())
+                .map_err(|e| CliError::Extract(ExtractError::StdIoError(e))));
+
+            if is_verbose {
+                println!("Wrote to {}", file_path.display());
+            }
+        }
+    }
 
     Ok(())
 }

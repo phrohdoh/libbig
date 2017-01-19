@@ -4,15 +4,16 @@ use byteorder::{LittleEndian, ReadBytesExt};
 use std::collections::HashMap;
 use std::io::{self, Read, Seek, SeekFrom, BufRead, BufReader};
 use std::fs::File;
+use std::cell::RefCell;
 
-mod errors;
-pub use errors::ReadError;
+pub mod errors;
+use errors::ReadError;
 
 pub struct BigArchive<T: Read + Seek> {
     pub format: Format,
     pub size: u32,
 
-    _buf_reader: BufReader<T>,
+    _buf_reader: RefCell<BufReader<T>>,
     _entries: HashMap<String, BigEntry>,
 }
 
@@ -69,15 +70,15 @@ impl<T: Read + Seek> BigArchive<T> {
         Ok(BigArchive {
             format: format,
             size: size,
-            _buf_reader: data,
+            _buf_reader: RefCell::new(data),
             _entries: entries,
         })
     }
 
     /// TODO: Don't return owned data, instead give the caller back a slice
-    pub fn read_entry(&mut self, entry_name: &str) -> Option<Vec<u8>> {
-        if let Some(entry) = self._entries.get_mut(entry_name) {
-            let mut br = &mut self._buf_reader;
+    pub fn read_entry(&self, entry_name: &str) -> Option<Vec<u8>> {
+        if let Some(entry) = self._entries.get(entry_name) {
+            let br = &mut self._buf_reader.borrow_mut();
 
             if br.seek(SeekFrom::Start((*entry).offset as u64)).is_err() {
                 return None;

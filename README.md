@@ -37,8 +37,9 @@ FLAGS:
 SUBCOMMANDS:
     help        Prints this message or the help of the given subcommand(s)
     list        List all entries in an archive
-    search      Locate entries with names containing a string
+    search      Locate entries with names containing a given string
     contains    Query an archive to determine if it contains an entry with a name
+    extract     Create a directory structure and extract files from an archive's hierarchy
 ```
 
 `cd cli-tools/sagebig` then:

@@ -5,24 +5,15 @@ use std::collections::HashMap;
 use std::io::{self, Read, Seek, SeekFrom, BufRead, BufReader};
 use std::fs::File;
 
+mod errors;
+pub use errors::ReadError;
+
 pub struct BigArchive<T: Read + Seek> {
     pub format: Format,
     pub size: u32,
 
     _buf_reader: BufReader<T>,
     _entries: HashMap<String, BigEntry>,
-}
-
-#[derive(Debug)]
-pub enum ReadError {
-    StdIoError(io::Error),
-    UnknownFormat(Vec<u8>),
-}
-
-impl From<io::Error> for ReadError {
-    fn from(e: io::Error) -> Self {
-        ReadError::StdIoError(e)
-    }
 }
 
 impl BigArchive<File> {
@@ -38,7 +29,7 @@ impl<T: Read + Seek> BigArchive<T> {
         let format = read_format(&mut data).expect("Failed to read format");
 
         if let Format::Unknown(bytes) = format {
-            return Err(ReadError::UnknownFormat(bytes));
+            return Err(ReadError::UnknownArchiveFormat(bytes));
         }
 
         let size = try!(data.read_u32::<LittleEndian>());

@@ -195,7 +195,7 @@ mod tests_bytes {
         let c = Cursor::new(TEST_BYTES);
         let br = BufReader::new(c);
         let archive = BigArchive::new(br).unwrap();
-        assert!(archive.contains("art/image.txt\u{0}"));
+        assert!(archive.contains("art/image.txt"));
     }
 
     #[test]
@@ -203,7 +203,7 @@ mod tests_bytes {
         let c = Cursor::new(TEST_BYTES);
         let br = BufReader::new(c);
         let archive = BigArchive::new(br).unwrap();
-        assert!(archive.contains("data/test.ini\u{0}"));
+        assert!(archive.contains("data/test.ini"));
     }
 
     #[test]
@@ -211,7 +211,7 @@ mod tests_bytes {
         let c = Cursor::new(TEST_BYTES);
         let br = BufReader::new(c);
         let archive = BigArchive::new(br).unwrap();
-        let data = archive.read_entry("art/image.txt\u{0}").unwrap();
+        let data = archive.read_entry("art/image.txt").unwrap();
         assert_eq!(data, vec![98, 108, 97, 98, 108, 98, 97]);
     }
 
@@ -220,7 +220,7 @@ mod tests_bytes {
         let c = Cursor::new(TEST_BYTES);
         let br = BufReader::new(c);
         let archive = BigArchive::new(br).unwrap();
-        let data = archive.read_entry("data/test.ini\u{0}").unwrap();
+        let data = archive.read_entry("data/test.ini").unwrap();
         assert_eq!(data,
                    vec![84, 104, 105, 115, 32, 105, 115, 32, 97, 32, 115, 105, 109, 112, 108,
                         101, 32, 116, 101, 115, 116, 32, 102, 105, 108, 101]);
@@ -282,26 +282,26 @@ mod tests_file {
     #[test]
     fn contains_art_slash_image_dot_txt() {
         let archive = BigArchive::new_from_path(&ARCHIVE_PATH).unwrap();
-        assert!(archive.contains("art/image.txt\u{0}"));
+        assert!(archive.contains("art/image.txt"));
     }
 
     #[test]
     fn contains_data_slash_test_dot_ini() {
         let archive = BigArchive::new_from_path(&ARCHIVE_PATH).unwrap();
-        assert!(archive.contains("data/test.ini\u{0}"));
+        assert!(archive.contains("data/test.ini"));
     }
 
     #[test]
     fn read_entry_art_slash_image_dot_txt() {
         let archive = BigArchive::new_from_path(&ARCHIVE_PATH).unwrap();
-        let data = archive.read_entry("art/image.txt\u{0}").unwrap();
+        let data = archive.read_entry("art/image.txt").unwrap();
         assert_eq!(data, vec![98, 108, 97, 98, 108, 98, 97]);
     }
 
     #[test]
     fn read_entry_data_slash_test_dot_ini() {
         let archive = BigArchive::new_from_path(&ARCHIVE_PATH).unwrap();
-        let data = archive.read_entry("data/test.ini\u{0}").unwrap();
+        let data = archive.read_entry("data/test.ini").unwrap();
         assert_eq!(data,
                    vec![84, 104, 105, 115, 32, 105, 115, 32, 97, 32, 115, 105, 109, 112, 108,
                         101, 32, 116, 101, 115, 116, 32, 102, 105, 108, 101]);

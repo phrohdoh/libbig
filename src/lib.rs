@@ -1,7 +1,7 @@
 #![cfg_attr(test, feature(test))]
 
 extern crate byteorder;
-use byteorder::{BigEndian, ReadBytesExt};
+use byteorder::{LittleEndian, BigEndian, ReadBytesExt};
 
 use std::collections::HashMap;
 use std::io::{self, Read, Seek, SeekFrom, BufRead, BufReader};
@@ -35,7 +35,7 @@ impl<T: Read + Seek> BigArchive<T> {
             return Err(ReadError::UnknownArchiveFormat(bytes));
         }
 
-        let size = try!(data.read_u32::<BigEndian>());
+        let size = try!(data.read_u32::<LittleEndian>());
         let num_entries = try!(data.read_u32::<BigEndian>());
 
         // Offset to the first entry, I think.

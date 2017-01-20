@@ -80,6 +80,14 @@ fn main() {
             .arg(Arg::with_name("verbose")
                 .short("v")
                 .long("verbose")))
+        .subcommand(SubCommand::with_name("info")
+            .about("Prints out information about an archive")
+            .version("0.1.0")
+            .author("Taryn Hill <taryn@phrohdoh.com>")
+            .arg(Arg::with_name("archive_path")
+                .value_name("archive_path")
+                .required(true)
+                .index(1)))
         .get_matches();
 
     let res: Result<(), CliError> = match matches.subcommand() {
@@ -87,6 +95,7 @@ fn main() {
         ("search", Some(args)) => cmd_search(args).map_err(CliError::Read),
         ("contains", Some(args)) => cmd_contains(args).map_err(CliError::Read),
         ("extract", Some(args)) => cmd_extract(args),
+        ("info", Some(args)) => cmd_info(args).map_err(CliError::Read),
         _ => unreachable!(),
     };
 
@@ -176,6 +185,17 @@ fn cmd_extract(args: &clap::ArgMatches) -> Result<(), CliError> {
             }
         }
     }
+
+    Ok(())
+}
+
+fn cmd_info(args: &clap::ArgMatches) -> Result<(), ReadError> {
+    let path = args.value_of("archive_path").unwrap();
+    let archive = try!(BigArchive::new_from_path(&path));
+
+    println!("Format: {:?}", archive.format);
+    println!("Length: {}", archive.size);
+    println!("Entries: {}", archive.len());
 
     Ok(())
 }

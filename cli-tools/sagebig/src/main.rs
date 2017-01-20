@@ -198,7 +198,7 @@ fn cmd_info(args: &clap::ArgMatches) -> Result<(), ReadError> {
         let entry = archive.get_entry(&name)
             .expect(&format!("Failed to read known entry {} from {}", name, path));
 
-        header_len += 4 + 4 + entry.name_len();
+        header_len += 4 + 4 + entry.name.len() + 1;
     }
 
     println!("Format: {:?}", archive.format);

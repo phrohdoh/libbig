@@ -83,8 +83,7 @@ impl<T: Read + Seek> BigArchive<T> {
             let entry = BigEntry {
                 offset: offset,
                 size: size,
-                name: String::from_utf8_lossy(&buf[..]).to_string(),
-                _name_len: name_len,
+                name: String::from_utf8_lossy(&buf[..name_len - 1]).to_string(),
             };
 
             entries.insert(entry.name.clone(), entry);
@@ -144,14 +143,6 @@ pub struct BigEntry {
     pub offset: u32,
     pub size: u32,
     pub name: String,
-
-    _name_len: usize,
-}
-
-impl BigEntry {
-    pub fn name_len(&self) -> usize {
-        self._name_len
-    }
 }
 
 #[derive(Debug, PartialEq)]

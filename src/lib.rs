@@ -29,7 +29,7 @@ impl BigArchive<File> {
 
 impl<T: Read + Seek> BigArchive<T> {
     pub fn new(mut data: BufReader<T>) -> Result<Self, ReadError> {
-        let format = read_format(&mut data).expect("Failed to read format");
+        let format = try!(read_format(&mut data));
 
         if let Format::Unknown(bytes) = format {
             return Err(ReadError::UnknownArchiveFormat(bytes));

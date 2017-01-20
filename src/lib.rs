@@ -1,4 +1,4 @@
-#![feature(test)]
+#![cfg_attr(test, feature(test))]
 
 extern crate byteorder;
 use byteorder::{LittleEndian, ReadBytesExt};

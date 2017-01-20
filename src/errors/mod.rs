@@ -24,3 +24,7 @@ impl From<io::Error> for ExtractError {
         ExtractError::StdIoError(e)
     }
 }
+
+pub enum CreateError {
+    StdIoError(io::Error),
+}

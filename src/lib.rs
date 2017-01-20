@@ -16,8 +16,39 @@ pub struct BigArchive<T: Read + Seek> {
     pub size: u32,
 
     _buf_reader: RefCell<BufReader<T>>,
+    _junk_len: u32,
     _entries: HashMap<String, BigEntry>,
 }
+
+// impl BigArchive {
+//     pub fn create_from_file(file_path: &str) -> Result<Self, CreateError> {
+//         let path = PathBuf::from(file_path);
+//         let bytes = File::open(&file_path)?.bytes().collect::<Vec<_>>();
+//         let file_len = bytes.len();
+//         let cursor = Cursor::new(bytes);
+//         let br = BufReader::new(cursor);
+//
+//         let entries = {
+//             let m = HashMap::new();
+//
+//             let entry = BigEntry {
+//                 offset: 0,
+//                 size: file_len,
+//                 name: "foo.txt".to_owned(),
+//             }
+//
+//             m.insert("foo.txt", )
+//             m
+//         };
+//
+//         Some(BigArchive {
+//             format: Format::Big4,
+//             size: len,
+//             _buf_reader: RefCell::new(br),
+//             _entries: entries,
+//         })
+//     }
+// }
 
 impl BigArchive<File> {
     pub fn new_from_path(path: &str) -> Result<Self, ReadError> {
@@ -35,43 +66,50 @@ impl<T: Read + Seek> BigArchive<T> {
             return Err(ReadError::UnknownArchiveFormat(bytes));
         }
 
-        let size = try!(data.read_u32::<LittleEndian>());
+        let archive_len = try!(data.read_u32::<LittleEndian>());
         let num_entries = try!(data.read_u32::<BigEndian>());
-
-        // Offset to the first entry, I think.
-        let _ = data.read_u32::<BigEndian>();
+        let first_offset = try!(data.read_u32::<BigEndian>());
+        let mut pos = 16;
 
         let mut entries = HashMap::new();
 
-        for i in 0..num_entries {
+        for _ in 0..num_entries {
             let offset = try!(data.read_u32::<BigEndian>());
-            let size = try!(data.read_u32::<BigEndian>());
+            let data_len = try!(data.read_u32::<BigEndian>());
 
             let mut buf = Vec::new();
-            data.read_until(b'\0', &mut buf)
-                .expect(&format!("Failed to read name for entry {}", i + 1));
-
-            // Remove the trailing \0
-            let name = String::from_utf8_lossy(&buf[..buf.len() - 1]);
+            let name_len = try!(data.read_until(b'\0', &mut buf));
 
             let entry = BigEntry {
                 offset: offset,
-                size: size,
-                name: name.to_string(),
+                data_len: data_len,
+                name: String::from_utf8_lossy(&buf[..name_len - 1]).to_string(),
             };
 
             entries.insert(entry.name.clone(), entry);
+
+            let entry_metadata_len = 4 + 4 + name_len as u32;
+            pos += entry_metadata_len;
         }
+
+        let junk_len = first_offset - pos
+        // Patching an off-by-one. Need to revisit and fix this properly.
+        + 1;
 
         Ok(BigArchive {
             format: format,
-            size: size,
+            size: archive_len,
             _buf_reader: RefCell::new(data),
+            _junk_len: junk_len,
             _entries: entries,
         })
     }
 
-    pub fn len(&self) -> usize {
+    pub fn junk_len(&self) -> u32 {
+        self._junk_len
+    }
+
+    pub fn entry_count(&self) -> usize {
         self._entries.len()
     }
 
@@ -84,7 +122,7 @@ impl<T: Read + Seek> BigArchive<T> {
                 return None;
             }
 
-            let mut buf = vec![0; entry.size as usize];
+            let mut buf = vec![0; entry.data_len as usize];
             if br.read_exact(&mut buf).is_err() {
                 return None;
             }
@@ -115,7 +153,7 @@ impl<T: Read + Seek> BigArchive<T> {
 #[derive(Debug)]
 pub struct BigEntry {
     pub offset: u32,
-    pub size: u32,
+    pub data_len: u32,
     pub name: String,
 }
 

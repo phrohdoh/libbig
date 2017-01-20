@@ -1,3 +1,5 @@
+#![feature(test)]
+
 extern crate byteorder;
 use byteorder::{LittleEndian, ReadBytesExt};
 
@@ -149,7 +151,6 @@ fn invert_endianness(v: u32) -> u32 {
 #[cfg(test)]
 mod tests_bytes {
     const TEST_BYTES: &'static [u8] = include_bytes!("../test.big");
-
     use std::io::{BufReader, Cursor};
     use super::{Format, BigArchive};
 
@@ -204,12 +205,46 @@ mod tests_bytes {
                    vec![84, 104, 105, 115, 32, 105, 115, 32, 97, 32, 115, 105, 109, 112, 108,
                         101, 32, 116, 101, 115, 116, 32, 102, 105, 108, 101]);
     }
+
+    mod benches {
+        extern crate test;
+        use self::test::Bencher;
+
+        #[bench]
+        fn is_big4(b: &mut Bencher) {
+            b.iter(|| super::is_big4());
+        }
+
+        #[bench]
+        fn has_two_entries(b: &mut Bencher) {
+            b.iter(|| super::has_two_entries());
+        }
+
+        #[bench]
+        fn contains_art_slash_image_dot_txt(b: &mut Bencher) {
+            b.iter(|| super::contains_art_slash_image_dot_txt());
+        }
+
+        #[bench]
+        fn contains_data_slash_test_dot_ini(b: &mut Bencher) {
+            b.iter(|| super::contains_data_slash_test_dot_ini());
+        }
+
+        #[bench]
+        fn read_entry_art_slash_image_dot_txt(b: &mut Bencher) {
+            b.iter(|| super::read_entry_art_slash_image_dot_txt());
+        }
+
+        #[bench]
+        fn read_entry_data_slash_test_dot_ini(b: &mut Bencher) {
+            b.iter(|| super::read_entry_data_slash_test_dot_ini());
+        }
+    }
 }
 
 #[cfg(test)]
 mod tests_file {
     use super::{Format, BigArchive};
-
     const ARCHIVE_PATH: &'static str = concat!(env!("CARGO_MANIFEST_DIR"), "/test.big");
 
     #[test]
@@ -250,5 +285,40 @@ mod tests_file {
         assert_eq!(data,
                    vec![84, 104, 105, 115, 32, 105, 115, 32, 97, 32, 115, 105, 109, 112, 108,
                         101, 32, 116, 101, 115, 116, 32, 102, 105, 108, 101]);
+    }
+
+    mod benches {
+        extern crate test;
+        use self::test::Bencher;
+
+        #[bench]
+        fn is_big4(b: &mut Bencher) {
+            b.iter(|| super::is_big4());
+        }
+
+        #[bench]
+        fn has_two_entries(b: &mut Bencher) {
+            b.iter(|| super::has_two_entries());
+        }
+
+        #[bench]
+        fn contains_art_slash_image_dot_txt(b: &mut Bencher) {
+            b.iter(|| super::contains_art_slash_image_dot_txt());
+        }
+
+        #[bench]
+        fn contains_data_slash_test_dot_ini(b: &mut Bencher) {
+            b.iter(|| super::contains_data_slash_test_dot_ini());
+        }
+
+        #[bench]
+        fn read_entry_art_slash_image_dot_txt(b: &mut Bencher) {
+            b.iter(|| super::read_entry_art_slash_image_dot_txt());
+        }
+
+        #[bench]
+        fn read_entry_data_slash_test_dot_ini(b: &mut Bencher) {
+            b.iter(|| super::read_entry_data_slash_test_dot_ini());
+        }
     }
 }

@@ -193,9 +193,18 @@ fn cmd_info(args: &clap::ArgMatches) -> Result<(), ReadError> {
     let path = args.value_of("archive_path").unwrap();
     let archive = try!(BigArchive::new_from_path(&path));
 
+    let mut header_len = 4 + 4 + 4 + 4;
+    for name in archive.get_all_entry_names().map(|k| k.to_owned()).collect::<Vec<_>>() {
+        let entry = archive.get_entry(&name)
+            .expect(&format!("Failed to read known entry {} from {}", name, path));
+
+        header_len += 4 + 4 + entry.name.len();
+    }
+
     println!("Format: {:?}", archive.format);
-    println!("Length: {}", archive.size);
-    println!("Entries: {}", archive.len());
+    println!("Total length: {}", archive.size);
+    println!("Header length: {}", header_len);
+    println!("Entries: {}", archive.entry_count());
 
     Ok(())
 }

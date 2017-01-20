@@ -71,6 +71,10 @@ impl<T: Read + Seek> BigArchive<T> {
         })
     }
 
+    pub fn len(&self) -> usize {
+        self._entries.len()
+    }
+
     /// TODO: Don't return owned data, instead give the caller back a slice
     pub fn read_entry(&self, entry_name: &str) -> Option<Vec<u8>> {
         if let Some(entry) = self._entries.get(entry_name) {

@@ -68,7 +68,6 @@ impl<T: Read + Seek> BigArchive<T> {
         let size = try!(data.read_u32::<LittleEndian>());
         let num_entries = try!(data.read_u32::<BigEndian>());
 
-        // Offset to the first entry, I think.
         let _ = data.read_u32::<BigEndian>();
 
         let mut entries = HashMap::new();
@@ -78,13 +77,14 @@ impl<T: Read + Seek> BigArchive<T> {
             let size = try!(data.read_u32::<BigEndian>());
 
             let mut buf = Vec::new();
-            data.read_until(b'\0', &mut buf)
+            let name_len = data.read_until(b'\0', &mut buf)
                 .expect(&format!("Failed to read name for entry {}", i + 1));
 
             let entry = BigEntry {
                 offset: offset,
                 size: size,
                 name: String::from_utf8_lossy(&buf[..]).to_string(),
+                _name_len: name_len,
             };
 
             entries.insert(entry.name.clone(), entry);
@@ -144,6 +144,14 @@ pub struct BigEntry {
     pub offset: u32,
     pub size: u32,
     pub name: String,
+
+    _name_len: usize,
+}
+
+impl BigEntry {
+    pub fn name_len(&self) -> usize {
+        self._name_len
+    }
 }
 
 #[derive(Debug, PartialEq)]

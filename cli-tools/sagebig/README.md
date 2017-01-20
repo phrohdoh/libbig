@@ -24,6 +24,7 @@ FLAGS:
 
 SUBCOMMANDS:
     help        Prints this message or the help of the given subcommand(s)
+    info        Prints out information about an archive
     list        List all entries in an archive
     search      Locate entries with names containing a given string
     contains    Query an archive to determine if it contains an entry with a name

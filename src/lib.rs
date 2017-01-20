@@ -1,7 +1,7 @@
 #![cfg_attr(test, feature(test))]
 
 extern crate byteorder;
-use byteorder::{LittleEndian, ReadBytesExt};
+use byteorder::{BigEndian, ReadBytesExt};
 
 use std::collections::HashMap;
 use std::io::{self, Read, Seek, SeekFrom, BufRead, BufReader};
@@ -35,23 +35,17 @@ impl<T: Read + Seek> BigArchive<T> {
             return Err(ReadError::UnknownArchiveFormat(bytes));
         }
 
-        let size = try!(data.read_u32::<LittleEndian>());
-        let size = invert_endianness(size);
-
-        let num_entries = try!(data.read_u32::<LittleEndian>());
-        let num_entries = invert_endianness(num_entries);
+        let size = try!(data.read_u32::<BigEndian>());
+        let num_entries = try!(data.read_u32::<BigEndian>());
 
         // Offset to the first entry, I think.
-        let _ = data.read_u32::<LittleEndian>();
+        let _ = data.read_u32::<BigEndian>();
 
         let mut entries = HashMap::new();
 
         for i in 0..num_entries {
-            let offset = try!(data.read_u32::<LittleEndian>());
-            let offset = invert_endianness(offset);
-
-            let size = try!(data.read_u32::<LittleEndian>());
-            let size = invert_endianness(size);
+            let offset = try!(data.read_u32::<BigEndian>());
+            let size = try!(data.read_u32::<BigEndian>());
 
             let mut buf = Vec::new();
             data.read_until(b'\0', &mut buf)
@@ -142,10 +136,6 @@ impl<'a> From<&'a mut BufRead> for Format {
 
 fn read_format(data: &mut BufRead) -> Result<Format, io::Error> {
     Ok(Format::from(data))
-}
-
-fn invert_endianness(v: u32) -> u32 {
-    (v << 24) | (v << 8 & 0xff0000) | (v >> 8 & 0xff00) | (v >> 24)
 }
 
 #[cfg(test)]

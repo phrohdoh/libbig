@@ -1,12 +1,19 @@
 #![cfg_attr(test, feature(test))]
 
-extern crate byteorder;
-use byteorder::{LittleEndian, BigEndian, ReadBytesExt};
-
 use std::collections::HashMap;
 use std::io::{self, Read, Seek, SeekFrom, BufRead, BufReader};
 use std::fs::File;
 use std::cell::RefCell;
+
+#[cfg(feature = "neon")]
+#[macro_use(register_module, declare_types, impl_managed, class_definition)]
+extern crate neon;
+
+#[cfg(feature = "neon")]
+pub mod feature_neon;
+
+extern crate byteorder;
+use byteorder::{LittleEndian, BigEndian, ReadBytesExt};
 
 pub mod errors;
 use errors::ReadError;

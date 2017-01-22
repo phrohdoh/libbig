@@ -8,5 +8,5 @@ authors = ["Taryn Hill <taryn@phrohdoh.com>"]
 byteorder = "1.0.0"
 clippy = { version = "*", optional = true }
 
-[features]
-default = []
+neon = { git = "https://github.com/neon-bindings/neon.git", optional = true }
+neon-build = { version = "0.1.11", optional = true }

@@ -57,7 +57,7 @@ ARGS:
 
 ```
 # List all entries in an archive
-$ sagebig test.big
+$ sagebig list test.big
 
 BigEntry {
     offset: 76,

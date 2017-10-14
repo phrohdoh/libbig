@@ -20,36 +20,6 @@ pub struct BigArchive<T: Read + Seek> {
     _entries: HashMap<String, BigEntry>,
 }
 
-// impl BigArchive {
-//     pub fn create_from_file(file_path: &str) -> Result<Self, CreateError> {
-//         let path = PathBuf::from(file_path);
-//         let bytes = File::open(&file_path)?.bytes().collect::<Vec<_>>();
-//         let file_len = bytes.len();
-//         let cursor = Cursor::new(bytes);
-//         let br = BufReader::new(cursor);
-//
-//         let entries = {
-//             let m = HashMap::new();
-//
-//             let entry = BigEntry {
-//                 offset: 0,
-//                 size: file_len,
-//                 name: "foo.txt".to_owned(),
-//             }
-//
-//             m.insert("foo.txt", )
-//             m
-//         };
-//
-//         Some(BigArchive {
-//             format: Format::Big4,
-//             size: len,
-//             _buf_reader: RefCell::new(br),
-//             _entries: entries,
-//         })
-//     }
-// }
-
 impl BigArchive<File> {
     pub fn new_from_path(path: &str) -> Result<Self, ReadError> {
         let f = try!(File::open(&path));
